@@ -5,8 +5,6 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import *
 from PyQt5.QtWebKitWidgets import QWebView  
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import QTimer
 import subprocess
 
 class MainWindow(QMainWindow):
@@ -104,7 +102,6 @@ class MainWindow(QMainWindow):
             "Ctrl+Q": self.close_browser,
             "F11": self.toggle_maximize_restore,
             "Ctrl+F": self.toggle_fullscreen,
-            "Escape": self.exit_fullscreen,
         }
         
         for shortcut, function in shortcuts.items():
@@ -156,17 +153,12 @@ class MainWindow(QMainWindow):
             self.url_bar.setText(q.toString())
 
     def close_browser(self):
-        """ Closes the browser and schedules a restart after 10 seconds. """
+        """ Closes the browser and restarts it after 10 seconds. """
+        self.close()
         print("Last tab closed. Restarting in 10 seconds...")
-        
-        # Run restart command in the background
-        subprocess.Popen(f"sleep 10 && {sys.executable} {' '.join(sys.argv)}", shell=True)
-        
-        self.close()  # 
-
-    def restart_browser(self):
+        time.sleep(10)
         subprocess.Popen([sys.executable] + sys.argv)
-        sys.exit()
+        sys.exit() 
 
     def next_tab(self):
         """ Switches to the next tab. """
@@ -205,33 +197,14 @@ class MainWindow(QMainWindow):
             self.tabs.tabBar().hide()
         self.is_fullscreen = not self.is_fullscreen
 
-    # def mouseMoveEvent(self, event):
-    #     """ Shows navbar when the mouse moves near the top in fullscreen mode. """
-    #     if self.is_fullscreen:
-    #         if event.pos().y() < 40:
-    #             self.navbar.show()
-    #         else:
-    #             QTimer.singleShot(1000, self.navbar.hide)
-    #     super().mouseMoveEvent(event)
-
     def mouseMoveEvent(self, event):
         """ Shows navbar when the mouse moves near the top in fullscreen mode. """
         if self.is_fullscreen:
             if event.pos().y() < 40:
                 self.navbar.show()
-                QTimer.singleShot(3000, self.hide_navbar)  # Delay hiding
+            else:
+                QTimer.singleShot(1000, self.navbar.hide)
         super().mouseMoveEvent(event)
-
-    def hide_navbar(self):
-        """ Hide navbar only if mouse is not near the top. """
-        if self.is_fullscreen and QCursor.pos().y() > 50:
-            self.navbar.hide()
-    
-    def exit_fullscreen(self):
-        """ Exits fullscreen mode when Escape key is pressed. """
-        if self.is_fullscreen:
-            self.toggle_fullscreen()
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -243,3 +216,5 @@ if __name__ == "__main__":
     window = MainWindow(fullscreen=True)  
     app.exec_()
 
+
+it is consuming more cpu usage how can i manage it what will be the reason
