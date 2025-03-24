@@ -1,0 +1,8 @@
+sudo docker build --platform=linux/arm64 -t countaiadmin/supernova-surfer:1.0.0 .
+
+xhost +
+docker run --rm --name supernovasurfer \
+    --net=host \
+    -e DISPLAY=:0 \
+    --device /dev/dri:/dev/dri \
+    countaiadmin/supernova-surfer:1.0.0
