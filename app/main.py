@@ -3,12 +3,19 @@ import sys
 import signal
 import time
 from gi.repository import Gtk, WebKit2, GLib, Gdk
+gi.require_version('Gtk', '3.0')
+gi.require_version('WebKit2', '4.0')
+
 
 class Browser(Gtk.Window):
     def __init__(self):
         super().__init__(title="Supernova Surfer")
         self.set_default_size(1920, 1080)
-        
+
+        # Always start in fullscreen mode
+        self.fullscreen_mode = True
+        self.ui_hidden = True
+
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.vbox)
         
@@ -22,11 +29,9 @@ class Browser(Gtk.Window):
         self.vbox.pack_start(self.notebook, True, True, 0)
         
         self.add_new_tab("http://192.168.0.226:8005", "Home")
-        
-        self.fullscreen_mode = True
-        self.ui_hidden = True
-        self.toggle_fullscreen()
-        
+
+        self.toggle_fullscreen()  # Start in fullscreen mode
+
         self.connect("motion-notify-event", self.on_mouse_move)
         self.connect("destroy", self.on_close)  # Detect window close
         
@@ -34,11 +39,11 @@ class Browser(Gtk.Window):
         signal.signal(signal.SIGTERM, self.handle_sigint)
     
     def setup_navbar(self):
-        back_btn = Gtk.Button(label="Back")
-        back_btn.connect("clicked", lambda _: self.current_browser().go_back())
+        # back_btn = Gtk.Button(label="Back")
+        # back_btn.connect("clicked", lambda _: self.current_browser().go_back())
         
-        forward_btn = Gtk.Button(label="Forward")
-        forward_btn.connect("clicked", lambda _: self.current_browser().go_forward())
+        # forward_btn = Gtk.Button(label="Forward")
+        # forward_btn.connect("clicked", lambda _: self.current_browser().go_forward())
         
         reload_btn = Gtk.Button(label="Reload")
         reload_btn.connect("clicked", lambda _: self.current_browser().reload())
@@ -53,12 +58,16 @@ class Browser(Gtk.Window):
         fullscreen_btn = Gtk.Button(label="Fullscreen")
         fullscreen_btn.connect("clicked", self.toggle_fullscreen)
         
-        self.navbar.pack_start(back_btn, False, False, 5)
-        self.navbar.pack_start(forward_btn, False, False, 5)
+        minimize_btn = Gtk.Button(label="Minimize")  # 🆕 Added Minimize button
+        minimize_btn.connect("clicked", self.toggle_minimize)
+
+        # self.navbar.pack_start(back_btn, False, False, 5)
+        # self.navbar.pack_start(forward_btn, False, False, 5)
         self.navbar.pack_start(reload_btn, False, False, 5)
         self.navbar.pack_start(self.url_bar, True, True, 5)
         self.navbar.pack_start(new_tab_btn, False, False, 5)
         self.navbar.pack_start(fullscreen_btn, False, False, 5)
+        self.navbar.pack_start(minimize_btn, False, False, 5)  # 🆕 Added to navbar
     
     def add_new_tab(self, url="http://192.168.0.226:8005", label="New Tab"):
         webview = WebKit2.WebView()
@@ -79,14 +88,14 @@ class Browser(Gtk.Window):
         self.current_browser().load_uri(url)
     
     def toggle_fullscreen(self, _=None):
-        if self.fullscreen_mode:
-            self.unfullscreen()
-            self.navbar.show()
-        else:
-            self.fullscreen()
-            self.navbar.hide()
-            self.ui_hidden = True
-        self.fullscreen_mode = not self.fullscreen_mode
+        """ Force fullscreen mode always """
+        self.fullscreen()
+        self.navbar.hide()
+        self.ui_hidden = True
+
+    def toggle_minimize(self, _):
+        """ Minimize the window """
+        self.iconify()  # 🆕 Minimize the window
     
     def update_url_bar(self, webview, event):
         if event == WebKit2.LoadEvent.COMMITTED:
@@ -120,11 +129,15 @@ class Browser(Gtk.Window):
 def main_loop():
     while True:
         try:
+            if not Gtk.init_check():
+                print("Error: GTK could not be initialized. Check X11 settings.")
+                time.sleep(10)
+                continue  # Retry after 10 seconds
             app = Browser()
             Gtk.main()
         except Exception as e:
             print(f"Browser crashed with error: {e}. Restarting in 10 seconds...")
-            time.sleep(10)  # Wait 10 seconds before restarting
+            time.sleep(10)
 
 if __name__ == "__main__":
     main_loop()

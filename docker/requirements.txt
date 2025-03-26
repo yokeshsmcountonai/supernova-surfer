@@ -1,3 +1,4 @@
+apturl==0.5.2
 async-timeout==5.0.1
 bcrypt==3.1.7
 blinker==1.8.2
@@ -98,3 +99,5 @@ wadllib==1.3.3
 werkzeug==3.0.6
 xkit==0.0.0
 zipp==3.20.2
+sudo apt update
+sudo apt install xserver-xorg x11-xserver-utils xinit

@@ -1,8 +1,33 @@
 sudo docker build --platform=linux/arm64 -t countaiadmin/supernova-surfer:1.0.0 .
 
-xhost +
-docker run --rm --name supernovasurfer \
-    --net=host \
-    -e DISPLAY=:0 \
-    --device /dev/dri:/dev/dri \
-    countaiadmin/supernova-surfer:1.0.0
+xhost +local:root
+sudo docker run -it --privileged=true  --restart=always --name supernovasurfer --net=host \
+  -e DISPLAY -u `id -u` \
+  -e WEBKIT_DISABLE_SANDBOX=1 \
+  -e WEBKIT_FORCE_SANDBOX=0 \
+  -e WEBKIT_MAX_WEB_PROCESSES=1 \
+  -e OMP_NUM_THREADS=1 \
+  -e MKL_NUM_THREADS=1 \
+  -e NUMEXPR_NUM_THREADS=1 \
+  --device /dev/dri:/dev/dri \
+  -v /dev:/dev \
+  -v $HOME/.cache/dconf:/home/user/.cache/dconf \
+  --cpus="0.2" --memory="256m" \
+  countaiadmin/supernova-surfer:1.0.0
+
+
+
+  sudo docker run -it --privileged=true --restart=always --name supernovasurfer --net=host \
+  -e DISPLAY -u $(id -u):$(id -g) \
+  -e WEBKIT_DISABLE_SANDBOX=1 \
+  -e WEBKIT_FORCE_SANDBOX=0 \
+  -e WEBKIT_MAX_WEB_PROCESSES=1 \
+  -e OMP_NUM_THREADS=1 \
+  -e MKL_NUM_THREADS=1 \
+  -e NUMEXPR_NUM_THREADS=1 \
+  --device /dev/dri:/dev/dri \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v /dev:/dev \
+  -v $HOME/.cache/dconf:/home/user/.cache/dconf \
+  --cpus="0.25" --memory="256m" \
+  countaiadmin/supernova-surfer:1.0.0
